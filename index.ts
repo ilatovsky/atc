@@ -1,3 +1,9 @@
+const cache = new Map<string, Map<number, number>>();
+
+function getProblemKey(amount: number, denominations: number[]) {
+    return `${amount}|${denominations.join()}`;
+}
+
 function atc(amount: number, denominations: number[], needToSort = true) {
     let result = new Map<number, number>();
     if (amount === 0) {
@@ -7,6 +13,12 @@ function atc(amount: number, denominations: number[], needToSort = true) {
     const sortedBanknotes = needToSort
         ? denominations.sort((a, b) => b - a)
         : denominations;
+
+    if (cache.has(getProblemKey(amount, sortedBanknotes))) {
+        return cache.get(getProblemKey(amount, sortedBanknotes)) as NonNullable<
+            ReturnType<typeof cache.get>
+        >;
+    }
 
     let currentAmountOfLargestDenomination = Math.trunc(
         amount / sortedBanknotes[0]
@@ -23,7 +35,7 @@ function atc(amount: number, denominations: number[], needToSort = true) {
                 [sortedBanknotes[0], currentAmountOfLargestDenomination],
                 ...nextAtcResult.entries(),
             ]);
-
+            cache.set(getProblemKey(amount, sortedBanknotes), result);
             return result;
         } catch (e) {
             currentAmountOfLargestDenomination--;
@@ -53,6 +65,7 @@ if (Number.isNaN(amount) || !denominations.length) {
 
 const result = atc(amount, denominations);
 
+console.log(cache);
 console.log(
     [
         Array.from(result.entries())
